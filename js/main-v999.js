@@ -6,7 +6,7 @@
 
   // Load city CSV
   async function loadCities(){
-    const res = await fetch('../city_coordinates.csv');
+    const res = await fetch('./city_coordinates.csv');
     const text = await res.text();
     const lines = text.trim().split('\n');
     lines.shift(); // remove header

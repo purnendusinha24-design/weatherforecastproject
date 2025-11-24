@@ -1,38 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>7-Day Weather Forecast — Major European Cities</title>
-    <link rel="stylesheet" href="css/master.css?v=3" />
+    <link rel="stylesheet" href="css/master.css">
 </head>
-
 <body>
-    <header>
-        <h1>7-Day Weather Forecast — Major European Cities</h1>
-        <p>Select a city to view a 7-day forecast. Data powered by 7Timer API (no API key required).</p>
-    </header>
 
-    <main>
-        <section class="controls">
-            <label for="citySelect">Choose a city</label>
-            <select id="citySelect"></select>
-            <button id="lookupBtn">Get Forecast</button>
-            <span id="status"></span>
-        </section>
+    <h1>7-Day Weather Forecast — Major European Cities</h1>
+    <p>Select a city to view a 7-day forecast. Data powered by 7Timer API (no API key required).</p>
 
-        <section id="forecast"></section>
+    <div class="controls">
+        <label for="citySelect">Choose a city</label>
+        <select id="citySelect"></select>
+        <button id="lookupBtn">Get Forecast</button>
+        <span id="status"></span>
+    </div>
 
-        <section class="instructions">
-            <h2>How to use</h2>
-            <p>Pick a city from the dropdown and click <strong>Get Forecast</strong>. Forecast shows daily weather, temperature, and precipitation.</p>
-        </section>
-    </main>
+    <div id="forecast"></div>
+
+    <h2>How to use</h2>
+    <p>Pick a city from the dropdown and click <strong>Get Forecast</strong>. Forecast shows daily weather, temperature, and precipitation.</p>
 
     <footer>
         © 2025 Travel Agency Weather Demo — Data from 7Timer.info
     </footer>
 
-    <script src="js/main-v10.js?v=999"></script>
+    <!-- Updated JS filename to force GitHub Pages refresh -->
+    <script src="js/main-v999.js"></script>
+
 </body>
 </html>

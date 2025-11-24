@@ -3,29 +3,29 @@
   const lookupBtn = document.getElementById("lookupBtn");
   const statusEl = document.getElementById("status");
   const forecastEl = document.getElementById("forecast");
+  const citiesUrl = "https://raw.githubusercontent.com/purnendusinha24-design/weatherforecastproject/main/city_coordinates.csv?nocache=" + Date.now();
+
 
   function showStatus(msg, err = false) {
     statusEl.textContent = msg;
     statusEl.style.color = err ? "red" : "black";
   }
 
-  async function loadCities(){
-  const res = await fetch('https://raw.githubusercontent.com/purnendusinha24-design/weatherforecast/main/city_coordinates.csv');
+async function loadCities(){
+  const res = await fetch(citiesUrl);
   const text = await res.text();
-  
-  const lines = text.trim().split('\n');
-  lines.shift(); // remove header
 
-  return lines.map(line => {
-    const parts = line.split(',');
-    return {
-      lat: parts[0],
-      lon: parts[1],
-      city: parts[2],
-      country: parts[3]
-    };
+  // CSV sometimes loads with windows line endings + blank lines
+  const lines = text.trim().split(/\r?\n/);
+
+  const header = lines.shift().split(",");
+  const cities = lines.map(line => {
+    const [lat, lon, city, country] = line.split(",");
+    return { lat, lon, city, country };
   });
+  return cities;
 }
+
 
   function populateCities(cities) {
     cities.sort((a, b) => a.city.localeCompare(b.city));
@@ -38,15 +38,20 @@
   }
 
   // Correct WORKING 7Timer Endpoint
-  async function fetchForecast(lat, lon) {
-    const url =
-      `https://www.7timer.info/bin/civillight.php?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}&ac=0&unit=metric&output=json`;
-
+  aasync function fetchForecast(lat, lon){
+  const url = `https://www.7timer.info/bin/civillight.php?lon=${lon}&lat=${lat}&ac=0&unit=metric&output=json`;
+  
+  showStatus("Loading forecast...");
+  
+  try {
     const res = await fetch(url);
-    if (!res.ok) throw new Error("API error");
-
-    return await res.json();
+    if (!res.ok) throw new Error("Network error fetching forecast");
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    throw err;
   }
+}
 
   function mapIcon(code) {
     return `images/${code}.png`;

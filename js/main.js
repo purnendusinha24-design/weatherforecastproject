@@ -10,8 +10,9 @@
     const res = await fetch('city_coordinates.csv');
     const text = await res.text();
     const lines = text.trim().split('\n');
-    const header = lines.shift().split(',');
-    const cities = lines.map(line => {
+    lines.shift(); // remove header row
+
+    return lines.map(line => {
       const parts = line.split(',');
       return {
         lat: parts[0],
@@ -20,11 +21,11 @@
         country: parts[3]
       };
     });
-    return cities;
   }
 
+  // Populate dropdown
   function populateCities(cities){
-    cities.sort((a,b)=> a.city.localeCompare(b.city, undefined, {sensitivity: 'base'}));
+    cities.sort((a,b)=> a.city.localeCompare(b.city));
     cities.forEach(c=>{
       const opt = document.createElement('option');
       opt.value = `${c.lat},${c.lon}`;
@@ -35,7 +36,7 @@
 
   function showStatus(msg, err=false){
     statusEl.textContent = msg;
-    statusEl.style.color = err ? '#900' : '#222';
+    statusEl.style.color = err ? '#900' : '#333';
   }
 
   function mapWeatherToImage(code){
@@ -62,6 +63,7 @@
 
   function renderForecast(cityLabel, data){
     forecastEl.innerHTML = '';
+
     const header = document.createElement('h2');
     header.textContent = `7-day forecast — ${cityLabel}`;
     forecastEl.appendChild(header);
@@ -78,14 +80,11 @@
       const d = document.createElement('div');
       d.className = 'date';
       const ds = day.date.toString();
-      const y = ds.slice(0,4), m = ds.slice(4,6), dday = ds.slice(6,8);
-      d.textContent = `${y}-${m}-${dday}`;
+      d.textContent = `${ds.slice(0,4)}-${ds.slice(4,6)}-${ds.slice(6,8)}`;
 
       const img = document.createElement('img');
       img.alt = day.weather;
       img.src = 'images/' + mapWeatherToImage(day.weather);
-      img.width = 64;
-      img.height = 64;
 
       const we = document.createElement('div');
       we.className = 'weather';
@@ -93,13 +92,7 @@
 
       const temp = document.createElement('div');
       temp.className = 'temp';
-      let tempText = '';
-      if (day.temp2m) {
-        tempText = `${day.temp2m.min}°C — ${day.temp2m.max}°C`;
-      } else {
-        tempText = 'N/A';
-      }
-      temp.textContent = tempText;
+      temp.textContent = `${day.temp2m.min}°C — ${day.temp2m.max}°C`;
 
       const precip = document.createElement('div');
       precip.className = 'precip';
@@ -117,51 +110,43 @@
     forecastEl.appendChild(grid);
   }
 
+  // Correct 7Timer API
   async function fetchForecast(lat, lon){
-    // Correct 7Timer endpoint (valid JSON + daily forecast)
     const url = `https://www.7timer.info/bin/civillight.php?lon=${encodeURIComponent(lon)}&lat=${encodeURIComponent(lat)}&ac=0&unit=metric&output=json`;
 
     showStatus('Loading forecast...');
-    try {
-      const res = await fetch(url);
-      if (!res.ok) throw new Error('Network response not ok');
-      const data = await res.json();
-      return data;
-    } catch(err){
-      throw err;
-    }
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Network error fetching forecast');
+
+    return await res.json();
   }
 
-  // Load city list
+  // Initialize app
   try {
     const cities = await loadCities();
     populateCities(cities);
     showStatus('Select a city and click Get Forecast');
   } catch(err){
-    showStatus('Failed to load city list', true);
     console.error(err);
+    showStatus('Failed to load city list', true);
   }
 
   lookupBtn.addEventListener('click', async ()=>{
     const val = citySelect.value;
     if (!val) return;
+
     const [lat, lon] = val.split(',');
     const label = citySelect.options[citySelect.selectedIndex].text;
 
     try {
-      showStatus('Fetching forecast for ' + label + ' ...');
+      showStatus(`Fetching forecast for ${label}...`);
       const data = await fetchForecast(lat, lon);
-      if (data && data.dataseries && data.dataseries.length>0){
-        renderForecast(label, data);
-        showStatus('Forecast loaded');
-      } else {
-        showStatus('No forecast data returned', true);
-      }
+      renderForecast(label, data);
+      showStatus("Forecast loaded");
     } catch(err){
       console.error(err);
-      showStatus('Failed to fetch forecast: ' + err.message, true);
+      showStatus("Failed to fetch forecast: " + err.message, true);
     }
   });
 
 })();
-

@@ -112,14 +112,18 @@
 
   // Correct 7Timer API
   async function fetchForecast(lat, lon){
-    const url = `https://www.7timer.info/bin/civillight.php?lon=${encodeURIComponent(lon)}&lat=${encodeURIComponent(lat)}&ac=0&unit=metric&output=json`;
+  const url = `https://www.7timer.info/bin/astro.php?lon=${encodeURIComponent(lon)}&lat=${encodeURIComponent(lat)}&ac=0&unit=metric&output=json`;
 
-    showStatus('Loading forecast...');
+  showStatus('Loading forecast...');
+  try {
     const res = await fetch(url);
     if (!res.ok) throw new Error('Network error fetching forecast');
-
     return await res.json();
+  } catch (err) {
+    throw err;
   }
+}
+
 
   // Initialize app
   try {

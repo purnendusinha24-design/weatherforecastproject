@@ -5,16 +5,14 @@
   const statusEl = document.getElementById('status');
   const forecastEl = document.getElementById('forecast');
 
-  // Load city list (CSV) shipped with starter
+  // Load city list (CSV)
   async function loadCities(){
     const res = await fetch('city_coordinates.csv');
     const text = await res.text();
     const lines = text.trim().split('\n');
     const header = lines.shift().split(',');
     const cities = lines.map(line => {
-      // handle commas inside names
       const parts = line.split(',');
-      // latitude,longitude,city,country
       return {
         lat: parts[0],
         lon: parts[1],
@@ -26,7 +24,6 @@
   }
 
   function populateCities(cities){
-    // prefer major cities first (simple sort)
     cities.sort((a,b)=> a.city.localeCompare(b.city, undefined, {sensitivity: 'base'}));
     cities.forEach(c=>{
       const opt = document.createElement('option');
@@ -42,7 +39,6 @@
   }
 
   function mapWeatherToImage(code){
-    // mapping to images in images/ folder
     const map = {
       'clear': 'clear.png',
       'pcloudy': 'pcloudy.png',
@@ -73,29 +69,18 @@
     const grid = document.createElement('div');
     grid.className = 'cards';
 
-    // dataseries usually provides multiple timesteps (every 3-hour or daily depending on product)
-    // We will take first 7 distinct dates (date string)
-    const seenDates = new Set();
-    const days = [];
-    for (let item of data.dataseries){
-      const date = item.date.toString(); // e.g., 20251123
-      const dateStr = date;
-      if (!seenDates.has(dateStr)){
-        seenDates.add(dateStr);
-        days.push(item);
-      }
-      if (days.length >= 7) break;
-    }
+    const days = data.dataseries.slice(0, 7);
 
     days.forEach(day => {
       const card = document.createElement('article');
       card.className = 'card';
+
       const d = document.createElement('div');
       d.className = 'date';
-      // format date like YYYYMMDD -> readable
       const ds = day.date.toString();
       const y = ds.slice(0,4), m = ds.slice(4,6), dday = ds.slice(6,8);
       d.textContent = `${y}-${m}-${dday}`;
+
       const img = document.createElement('img');
       img.alt = day.weather;
       img.src = 'images/' + mapWeatherToImage(day.weather);
@@ -107,21 +92,18 @@
       we.innerHTML = `<strong>${day.weather}</strong>`;
 
       const temp = document.createElement('div');
-      // use temp2m if present: temp2m:max/min fields may exist, else temp2m
+      temp.className = 'temp';
       let tempText = '';
-      if (day.temp2m_min !== undefined && day.temp2m_max !== undefined) {
-        tempText = `${day.temp2m_min}°C — ${day.temp2m_max}°C`;
-      } else if (day.temp2m !== undefined) {
-        tempText = `${day.temp2m}°C`;
+      if (day.temp2m) {
+        tempText = `${day.temp2m.min}°C — ${day.temp2m.max}°C`;
       } else {
         tempText = 'N/A';
       }
-      temp.className = 'temp';
       temp.textContent = tempText;
 
       const precip = document.createElement('div');
       precip.className = 'precip';
-      precip.textContent = `Precip: ${day.prec_type || day.prec_amount || 'N/A'}`;
+      precip.textContent = `Precip: ${day.prec_type || 'N/A'}`;
 
       card.appendChild(d);
       card.appendChild(img);
@@ -136,9 +118,9 @@
   }
 
   async function fetchForecast(lat, lon){
-    // 7Timer API: product=civillight / output=json
-    // Use 'civillight' product which has dataseries daily
-    const url = `https://www.7timer.info/bin/api.pl?lon=${encodeURIComponent(lon)}&lat=${encodeURIComponent(lat)}&product=civillight&output=json`;
+    // Correct 7Timer endpoint (valid JSON + daily forecast)
+    const url = `https://www.7timer.info/bin/civillight.php?lon=${encodeURIComponent(lon)}&lat=${encodeURIComponent(lat)}&ac=0&unit=metric&output=json`;
+
     showStatus('Loading forecast...');
     try {
       const res = await fetch(url);
@@ -150,7 +132,7 @@
     }
   }
 
-  // Wire up
+  // Load city list
   try {
     const cities = await loadCities();
     populateCities(cities);
@@ -165,6 +147,7 @@
     if (!val) return;
     const [lat, lon] = val.split(',');
     const label = citySelect.options[citySelect.selectedIndex].text;
+
     try {
       showStatus('Fetching forecast for ' + label + ' ...');
       const data = await fetchForecast(lat, lon);
@@ -181,3 +164,4 @@
   });
 
 })();
+

@@ -10,7 +10,7 @@
   }
 
   async function loadCities() {
-    const res = await fetch("city_coordinates.csv");
+    const res = await fetch('https://raw.githubusercontent.com/purnendusinha24-design/weatherforecast/main/city_coordinates.csv');
     const text = await res.text();
     const lines = text.trim().split("\n");
     lines.shift();

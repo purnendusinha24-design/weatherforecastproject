@@ -70,19 +70,19 @@ async function loadWeather() {
     statusEl.textContent = "";
 
     data.dataseries.slice(0,7).forEach(day => {
-      const card = document.createElement("div");
-      card.className = "day-card";
+  const card = document.createElement("div");
+  card.className = "day-card";
 
-      card.innerHTML = `
-        <h3>${day.date}</h3>
-        <img class="weather-icon" src="${getIconPath(day.weather)}" alt="${day.weather}">
-        <p><strong>${day.weather}</strong></p>
-        <p>Temp: ${day.temp2m.max}°C / ${day.temp2m.min}°C</p>
-        <p>Wind: ${day.wind10m_max} m/s</p>
-      `;
+  card.innerHTML = `
+    <h3>${formatDate(day.date)}</h3>
+    <img class="weather-icon" src="${getIconPath(day.weather)}" alt="${day.weather}">
+    <p><strong>${day.weather}</strong></p>
+    <p>Temp: ${day.temp2m.max}°C / ${day.temp2m.min}°C</p>
+    <p>Wind: ${day.wind10m_max} m/s</p>
+  `;
 
-      forecastEl.appendChild(card);
-    });
+  forecastEl.appendChild(card);
+});
 
   } catch (err) {
     console.error("Forecast error:", err);

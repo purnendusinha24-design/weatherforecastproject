@@ -1,124 +1,62 @@
-(async function() {
-  const citySelect = document.getElementById("citySelect");
-  const lookupBtn = document.getElementById("lookupBtn");
-  const statusEl = document.getElementById("status");
-  const forecastEl = document.getElementById("forecast");
-  const citiesUrl = "https://raw.githubusercontent.com/purnendusinha24-design/weatherforecastproject/main/city_coordinates.csv?nocache=" + Date.now();
+# js/main.js
+async function loadCities() {
+  const select = document.getElementById('citySelect');
+  const csv = await fetch('city_coordinates.csv');
+  const text = await csv.text();
 
-
-  function showStatus(msg, err = false) {
-    statusEl.textContent = msg;
-    statusEl.style.color = err ? "red" : "black";
-  }
-
-async function loadCities(){
-  const res = await fetch(citiesUrl);
-  const text = await res.text();
-
-  // CSV sometimes loads with windows line endings + blank lines
-  const lines = text.trim().split(/\r?\n/);
-
-  const header = lines.shift().split(",");
-  const cities = lines.map(line => {
-    const [lat, lon, city, country] = line.split(",");
-    return { lat, lon, city, country };
-  });
-  return cities;
-}
-
-
-  function populateCities(cities) {
-    cities.sort((a, b) => a.city.localeCompare(b.city));
-    cities.forEach(c => {
-      const opt = document.createElement("option");
-      opt.value = `${c.lat},${c.lon}`;
-      opt.textContent = `${c.city}, ${c.country}`;
-      citySelect.appendChild(opt);
-    });
-  }
-
-  // Correct WORKING 7Timer Endpoint
-  aasync function fetchForecast(lat, lon){
-  const url = `https://www.7timer.info/bin/civillight.php?lon=${lon}&lat=${lat}&ac=0&unit=metric&output=json`;
-  
-  showStatus("Loading forecast...");
-  
-  try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error("Network error fetching forecast");
-    const data = await res.json();
-    return data;
-  } catch (err) {
-    throw err;
-  }
-}
-
-  function mapIcon(code) {
-    return `images/${code}.png`;
-  }
-
-  function renderForecast(cityLabel, data) {
-    forecastEl.innerHTML = "";
-
-    if (!data.dataseries) {
-      forecastEl.textContent = "No forecast available.";
-      return;
+  const rows = text.split(/\r?\n/);
+  rows.forEach(line => {
+    const parts = line.split(',');
+    if (parts.length === 3) {
+      const [city, lat, lon] = parts;
+      const opt = document.createElement('option');
+      opt.value = `${lat},${lon}`;
+      opt.textContent = city;
+      select.appendChild(opt);
     }
+  });
+}
 
-    const header = document.createElement("h2");
-    header.textContent = `7-Day Forecast — ${cityLabel}`;
-    forecastEl.appendChild(header);
+function weatherIcon(code) {
+  return `icons/${code}.png`;
+}
 
-    const grid = document.createElement("div");
-    grid.className = "cards";
-    forecastEl.appendChild(grid);
+async function loadWeather() {
+  const select = document.getElementById('citySelect');
+  const forecastBox = document.getElementById('forecast');
+  const status = document.getElementById('status');
 
-    data.dataseries.slice(0, 7).forEach(day => {
-      const card = document.createElement("div");
-      card.className = "card";
+  forecastBox.innerHTML = '';
+  status.textContent = 'Loading...';
 
-      const dateText = day.date.toString();
-      const yyyy = dateText.slice(0, 4);
-      const mm = dateText.slice(4, 6);
-      const dd = dateText.slice(6, 8);
+  const [lat, lon] = select.value.split(',');
+
+  try {
+    const url = `https://www.7timer.info/bin/api.pl?lon=${lon}&lat=${lat}&product=civillight&output=json`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    status.textContent = '';
+
+    data.dataseries.forEach(day => {
+      const card = document.createElement('div');
+      card.className = 'day-card';
 
       card.innerHTML = `
-        <div class="date">${yyyy}-${mm}-${dd}</div>
-        <img src="${mapIcon(day.weather)}" alt="${day.weather}" width="64">
-        <div class="weather"><strong>${day.weather}</strong></div>
-        <div class="temp">${day.temp2m.min}°C — ${day.temp2m.max}°C</div>
-        <div class="precip">Precip: ${day.prec_type || "N/A"}</div>
+        <h3>${day.date}</h3>
+        <img class="weather-icon" src="${weatherIcon(day.weather)}" alt="icon" />
+        <p><strong>${day.weather}</strong></p>
+        <p>Temp: ${day.temp2m.max}°C / ${day.temp2m.min}°C</p>
+        <p>Wind: ${day.wind10m_max} m/s</p>
       `;
-      grid.appendChild(card);
+
+      forecastBox.appendChild(card);
     });
+  } catch (error) {
+    status.textContent = 'Error loading forecast.';
+    console.error(error);
   }
+}
 
-  // Initialize
-  try {
-    const cities = await loadCities();
-    populateCities(cities);
-    showStatus("Select a city and click Get Forecast");
-  } catch (err) {
-    console.error(err);
-    showStatus("Failed to load city list", true);
-  }
-
-  lookupBtn.addEventListener("click", async () => {
-    const value = citySelect.value;
-    if (!value) return;
-
-    const label = citySelect.options[citySelect.selectedIndex].text;
-    const [lat, lon] = value.split(",");
-
-    try {
-      showStatus(`Fetching forecast for ${label}...`);
-      const data = await fetchForecast(lat, lon);
-      renderForecast(label, data);
-      showStatus("Forecast loaded");
-    } catch (err) {
-      console.error(err);
-      showStatus("Failed to fetch forecast", true);
-    }
-  });
-
-})();
+document.getElementById('lookupBtn').addEventListener('click', loadWeather);
+loadCities();

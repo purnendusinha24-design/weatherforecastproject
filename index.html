@@ -1,34 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>7-Day Weather Forecast — Major European Cities</title>
-    <link rel="stylesheet" href="css/master.css">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>7Timer Weather App</title>
+<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/weather-icons/2.0.10/css/weather-icons.min.css" />
 </head>
 <body>
+<header>
+<h1>7Timer Weather</h1>
+<select id="citySelect">
+<option value="delhi">Delhi</option>
+<option value="mumbai">Mumbai</option>
+<option value="newyork">New York</option>
+<option value="london">London</option>
+<option value="tokyo">Tokyo</option>
+<option value="sydney">Sydney</option>
+<option value="paris">Paris</option>
+</select>
+</header>
 
-    <h1>7-Day Weather Forecast — Major European Cities</h1>
-    <p>Select a city to view a 7-day forecast. Data powered by 7Timer API (no API key required).</p>
 
-    <div class="controls">
-        <label for="citySelect">Choose a city</label>
-        <select id="citySelect"></select>
-        <button id="lookupBtn">Get Forecast</button>
-        <span id="status"></span>
-    </div>
+<section id="weatherContainer"></section>
 
-    <div id="forecast"></div>
 
-    <h2>How to use</h2>
-    <p>Pick a city from the dropdown and click <strong>Get Forecast</strong>. Forecast shows daily weather, temperature, and precipitation.</p>
-
-    <footer>
-        © 2025 Travel Agency Weather Demo — Data from 7Timer.info
-    </footer>
-
-    <!-- Updated JS filename to force GitHub Pages refresh -->
-    <script src="js/main-v999.js"></script>
-
+<script src="script.js"></script>
 </body>
 </html>
